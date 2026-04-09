@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI OS - Stop Paying for Multiple AI Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --secondary: #ff006e;
+            --accent: #8338ec;
+            --dark: #0a0e27;
+            --darker: #050816;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--secondary);
+            bottom: -10%;
+            right: -10%;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            width: 350px;
+            height: 350px;
+            background: var(--accent);
+            top: 40%;
+            right: 10%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.9); }
+            75% { transform: translate(40px, 20px) scale(1.05); }
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 2rem 0;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(10, 14, 39, 0.6);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        /* Glass card component */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero-content {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        /* Waitlist Form */
+        .waitlist-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .waitlist-input {
+            flex: 1;
+            padding: 1.2rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .waitlist-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .waitlist-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .btn-primary {
+            padding: 1.2rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 3rem;
+            animation: fadeInUp 1s ease-out 0.8s both;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Problems Section */
+        .section {
+            padding: 8rem 0;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .problem-card {
+            padding: 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.2);
+        }
+
+        .problem-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .problem-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .problem-card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .feature-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pricing-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .price-period {
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        .features-list {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .features-list li {
+            padding: 0.75rem 0;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 8rem 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 0, 110, 0.1));
+            border-radius: 40px;
+            margin: 4rem 0;
+        }
+
+        .cta-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 2rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 0 2rem;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-content {
+            color: var(--text-dim);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .social-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            padding: 1rem 2rem;
+            background: rgba(0, 240, 100, 0.2);
+            border: 1px solid rgba(0, 240, 100, 0.5);
+            border-radius: 12px;
+            color: #00f064;
+            margin-top: 1rem;
+            animation: fadeInUp 0.5s;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .waitlist-form {
+                flex-direction: column;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .problems-grid,
+            .features-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">AI OS</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">🚀 Launching Soon</div>
+                <h1>Stop Paying for<br>Multiple AI Tools</h1>
+                <p class="subtitle">
+                    One intelligent AI platform that replaces ChatGPT, Midjourney, Claude, and 10+ other subscriptions. 
+                    Smart routing, zero prompt engineering, infinite possibilities.
+                </p>
+                
+                <form class="waitlist-form" id="waitlistForm">
+                    <input 
+                        type="email" 
+                        class="waitlist-input" 
+                        placeholder="Enter your email" 
+                        required
+                        id="emailInput"
+                    >
+                    <button type="submit" class="btn-primary">Join Waitlist</button>
+                </form>
+                <div class="success-message" id="successMessage">
+                    ✓ You're on the list! We'll notify you when AI OS launches.
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number">$0</div>
+                        <div class="stat-label">Free Forever Tier</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">10+</div>
+                        <div class="stat-label">AI Models Included</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Possibilities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problems Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">The AI Subscription Hell</h2>
+            <div class="problems-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">💸</div>
+                    <h3>Subscription Overload</h3>
+                    <p>ChatGPT Plus ($20) + Claude Pro ($20) + Midjourney ($30) = $70/month. And you still need more tools.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3>Constant Tool Switching</h3>
+                    <p>Copy-pasting between apps, learning different interfaces, managing multiple accounts. Productivity killer.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🤯</div>
+                    <h3>Prompt Engineering Hell</h3>
+                    <p>Spending hours crafting the perfect prompt. Wrong model = wrong output. Time wasted.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">❌</div>
+                    <h3>Unreliable Outputs</h3>
+                    <p>Hallucinations, outdated info, no sources. You can't trust what you get.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🔒</div>
+                    <h3>Privacy Concerns</h3>
+                    <p>Your data training someone else's AI. No control, no transparency.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">📉</div>
+                    <h3>Rate Limits & Quotas</h3>
+                    <p>Hit your limit mid-project. Pay more or wait hours. Frustrating.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">One AI. Infinite Power.</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Smart Model Routing</h3>
+                    <p>AI OS automatically picks the best model for your task. Need creative writing? GPT-4. Complex reasoning? Claude. Image generation? Flux. You don't choose, it just works.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Persistent Memory</h3>
+                    <p>Remembers your preferences, projects, and context across all conversations. No more repeating yourself or losing progress.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Zero-Prompt Workflows</h3>
+                    <p>Click "Create Blog Post" or "Design Logo" and get results. No complex prompts, no trial and error. Just instant execution.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Fact-Checked Outputs</h3>
+                    <p>Every response includes sources, confidence scores, and verification. No more hallucinations or fake citations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Privacy-First Design</h3>
+                    <p>Local AI mode for sensitive tasks. Your data stays yours. Optional cloud sync when you need it.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Multi-Step Automation</h3>
+                    <p>Chain complex tasks together. "Research topic → Write article → Create images → Design social posts" in one click.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Simple, Honest Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0<span class="price-period">/month</span></div>
+                    <ul class="features-list">
+                        <li>5 AI models included</li>
+                        <li>50 requests/day</li>
+                        <li>Basic memory</li>
+                        <li>Cloud sync</li>
+                        <li>Community support</li>
+                    </ul>
+                    <button class="btn-primary" onclick="document.getElementById('emailInput').focus()">Get Started Free</button>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">MOST POPULAR</div>
+                    <h3>Pro</h3>
+                    <div class="price">$9<span class="price-period">/month</span></div>
+                    <ul class="features-list">
+                        <li>All 10+ AI models</li>
+                        <li>Unlimited requests</li>
+                        <li>Advanced memory</li>
+                        <li>Priority routing</li>
+                        <li>Multi-step automation</li>
+                        <li>Offline mode</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="btn-primary" onclick="document.getElementById('emailInput').focus()">Join Waitlist</button>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">Custom</div>
+                    <ul class="features-list">
+                        <li>Everything in Pro</li>
+                        <li>Custom model fine-tuning</li>
+                        <li>Team collaboration</li>
+                        <li>Advanced analytics</li>
+                        <li>API access</li>
+                        <li>Dedicated support</li>
+                        <li>SLA guarantee</li>
+                    </ul>
+                    <button class="btn-primary" onclick="document.getElementById('emailInput').focus()">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="section">
+        <div class="container">
+            <div class="cta-section">
+                <h2>Ready to Simplify Your AI Workflow?</h2>
+                <p class="subtitle">Join 1,000+ early adopters waiting for launch.</p>
+                <form class="waitlist-form" onsubmit="event.preventDefault(); handleWaitlist();">
+                    <input 
+                        type="email" 
+                        class="waitlist-input" 
+                        placeholder="Enter your email" 
+                        required
+                        id="emailInput2"
+                    >
+                    <button type="submit" class="btn-primary">Secure Your Spot</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo" style="margin-bottom: 1rem;">AI OS</div>
+                <p>The last AI subscription you'll ever need.</p>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Discord</a>
+                    <a href="#">GitHub</a>
+                </div>
+                <p style="margin-top: 2rem; font-size: 0.85rem;">© 2026 AI OS. Launching Soon.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Supabase Configuration
+        // REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Waitlist form handler with Supabase
+        async function handleWaitlist() {
+            const email = document.getElementById('emailInput').value || document.getElementById('emailInput2').value;
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            
+            if (!email) return;
+            
+            // Disable button during submission
+            submitButton.disabled = true;
+            submitButton.textContent = 'Joining...';
+            
+            try {
+                // Insert email into Supabase
+                const { data, error } = await supabase
+                    .from('waitlist')
+                    .insert([{ email: email }])
+                    .select();
+                
+                if (error) {
+                    // Handle duplicate email
+                    if (error.code === '23505') {
+                        showMessage('You\'re already on the waitlist! 🎉', 'success');
+                    } else {
+                        showMessage('Something went wrong. Please try again.', 'error');
+                        console.error('Supabase error:', error);
+                    }
+                } else {
+                    // Success
+                    showMessage('✓ You\'re on the list! We\'ll notify you when AI OS launches.', 'success');
+                    
+                    // Clear inputs
+                    document.getElementById('emailInput').value = '';
+                    document.getElementById('emailInput2').value = '';
+                    
+                    // Track signup (optional - add analytics here)
+                    console.log('New signup:', data);
+                }
+            } catch (err) {
+                showMessage('Network error. Please check your connection.', 'error');
+                console.error('Error:', err);
+            } finally {
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Join Waitlist';
+            }
+        }
+        
+        // Show message function
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('successMessage');
+            messageEl.textContent = message;
+            messageEl.classList.add('show');
+            
+            if (type === 'error') {
+                messageEl.style.background = 'rgba(255, 0, 0, 0.2)';
+                messageEl.style.borderColor = 'rgba(255, 0, 0, 0.5)';
+                messageEl.style.color = '#ff4444';
+            } else {
+                messageEl.style.background = 'rgba(0, 240, 100, 0.2)';
+                messageEl.style.borderColor = 'rgba(0, 240, 100, 0.5)';
+                messageEl.style.color = '#00f064';
+            }
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Form submission
+        document.getElementById('waitlistForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleWaitlist();
+        });
+        
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Optional: Get waitlist count on load
+        async function getWaitlistCount() {
+            try {
+                const { count, error } = await supabase
+                    .from('waitlist')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (!error && count) {
+                    // Update "Join 1,000+ early adopters" text dynamically
+                    const ctaText = document.querySelector('.cta-section .subtitle');
+                    if (ctaText && count > 0) {
+                        ctaText.textContent = `Join ${count.toLocaleString()}+ early adopters waiting for launch.`;
+                    }
+                }
+            } catch (err) {
+                console.log('Could not fetch count:', err);
+            }
+        }
+        
+        // Load count on page load
+        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+            getWaitlistCount();
+        }
+    </script>
+</body>
+</html>
