@@ -97,13 +97,15 @@ app = FastAPI(
 # In production: restrict to the explicit CORS_ORIGINS list in .env.
 if settings.debug:
     origins = ["*"]
+    allow_credentials = False  # wildcard origin requires credentials=False
 else:
     origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    allow_credentials = True  # safe once origins is a specific list
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=settings.debug is False,  # credentials can't be used with wildcard
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -117,6 +119,7 @@ from api.workflow import router as workflow_router
 from api.memory import router as memory_router
 from api.usage import router as usage_router
 from api.waitlist import router as waitlist_router
+from api.conversations import router as conversations_router
 
 app.include_router(auth_router)
 app.include_router(chat_router)
@@ -124,6 +127,7 @@ app.include_router(workflow_router)
 app.include_router(memory_router)
 app.include_router(usage_router)
 app.include_router(waitlist_router)
+app.include_router(conversations_router)
 
 
 # ── Health Check ────────────────────────────────────────────────────

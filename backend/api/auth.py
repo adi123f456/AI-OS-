@@ -1,19 +1,30 @@
 """
 AI OS — Auth API Routes
-User registration, login, and token management.
+User registration, login, token management, and profile.
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException
+from typing import Dict, Any, Optional
+from fastapi import APIRouter, HTTPException, Depends
 import uuid
 
 from models.user import UserCreate, UserLogin, UserResponse, TokenResponse
-from utils.security import hash_password, verify_password, create_access_token, generate_api_key
+from utils.security import hash_password, verify_password, create_access_token, generate_api_key, decode_access_token
 from services.supabase_client import db
 from utils.helpers import validate_email
+from middleware.auth_middleware import get_current_user
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
+
+# ── Pydantic models for request bodies ─────────────────────────────
+
+class TokenRefreshRequest(BaseModel):
+    """Request body for token refresh."""
+    token: str
+
+
+# ── Register ──────────────────────────────────────────────────────
 
 @router.post("/register", response_model=TokenResponse)
 async def register(user_data: UserCreate):
@@ -65,6 +76,8 @@ async def register(user_data: UserCreate):
     )
 
 
+# ── Login ─────────────────────────────────────────────────────────
+
 @router.post("/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
     """
@@ -97,18 +110,18 @@ async def login(user_data: UserLogin):
     )
 
 
+# ── Refresh Token ─────────────────────────────────────────────────
+
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(current_token: Dict[str, str]):
+async def refresh_token(body: TokenRefreshRequest):
     """
     Refresh an existing token.
-    Send the current token to get a new one.
+    Send the current token in the body to get a fresh one.
     """
-    from utils.security import decode_access_token
-
     try:
-        payload = decode_access_token(current_token.get("token", ""))
+        payload = decode_access_token(body.token)
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     user_id = payload.get("sub")
     user = await db.select_one("users", {"id": user_id})
@@ -131,18 +144,17 @@ async def refresh_token(current_token: Dict[str, str]):
     )
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_profile(user: Dict = None):
-    """Get current user profile."""
-    from middleware.auth_middleware import get_current_user
-    from fastapi import Depends, Request
+# ── Get Profile (/me) ─────────────────────────────────────────────
 
-    # This will be used with Depends(get_current_user) in main
-    if user:
-        return UserResponse(
-            id=user["id"],
-            email=user["email"],
-            tier=user.get("tier", "free"),
-            created_at=user.get("created_at"),
-        )
-    raise HTTPException(status_code=401, detail="Not authenticated")
+@router.get("/me", response_model=UserResponse)
+async def get_profile(user: Dict = Depends(get_current_user)):
+    """
+    Get the current authenticated user's profile.
+    Requires a valid Bearer token.
+    """
+    return UserResponse(
+        id=user["id"],
+        email=user["email"],
+        tier=user.get("tier", "free"),
+        created_at=user.get("created_at"),
+    )

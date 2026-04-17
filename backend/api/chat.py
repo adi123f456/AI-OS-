@@ -171,6 +171,135 @@ async def unified_chat(
     )
 
 
+@router.post("/chat/stream")
+async def stream_chat(
+    request: ChatRequest,
+    user: Dict = Depends(get_current_user),
+):
+    """
+    🌊 Streaming Chat Endpoint (SSE)
+
+    Same pipeline as /api/chat but streams the AI response token-by-token
+    using Server-Sent Events. Use EventSource or fetch with ReadableStream
+    on the frontend.
+
+    Each chunk: `data: <token_text>`
+    Final chunk: `data: [DONE]`
+    """
+    user_id = user["id"]
+    user_tier = user.get("tier", "free")
+
+    # Rate limit
+    await check_rate_limit(user_id, user_tier)
+
+    # Build messages
+    messages = [{"role": m.role, "content": m.content} for m in request.messages]
+
+    # Inject memory
+    if request.include_memory:
+        memory_context = await memory_manager.get_context_prompt(user_id)
+        system_content = "You are AI OS, a unified AI assistant. Be helpful, accurate, and concise."
+        if memory_context:
+            system_content += f"\n\n{memory_context}\n\nUse the above context to personalize your responses when relevant."
+        messages.insert(0, {"role": "system", "content": system_content})
+
+    # Route model
+    last_message = request.messages[-1].content if request.messages else ""
+    model, _ = model_router.route(
+        message=last_message,
+        user_tier=user_tier,
+        preferred_model=request.model,
+    )
+
+    # Prepare conversation
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+
+    async def event_generator():
+        full_content = ""
+        try:
+            async for token in llm_client.stream_chat_generator(
+                model=model,
+                messages=messages,
+                max_tokens=request.max_tokens or 4096,
+                temperature=request.temperature or 0.7,
+            ):
+                full_content += token
+                # SSE format
+                yield f"data: {json.dumps({'token': token, 'conversation_id': conversation_id, 'model': model})}\n\n"
+
+            # Save conversation after streaming completes
+            existing_conv = await db.select_one("conversations", {"id": conversation_id})
+            if not existing_conv:
+                await db.insert("conversations", {
+                    "id": conversation_id,
+                    "user_id": user_id,
+                    "title": generate_title(last_message),
+                    "model_used": model,
+                })
+
+            await db.insert("messages", {
+                "id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "role": "user",
+                "content": last_message,
+            })
+
+            # Estimate tokens for streamed response
+            tokens_input_est = int(len(" ".join(m["content"] for m in messages).split()) * 1.3)
+            tokens_output_est = int(len(full_content.split()) * 1.3)
+            cost_est = llm_client._calculate_cost(model, tokens_input_est, tokens_output_est)
+
+            await db.insert("messages", {
+                "id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_content,
+                "model": model,
+                "tokens_used": tokens_output_est,
+                "cost": cost_est,
+            })
+
+            # Track usage so daily limits and analytics work
+            try:
+                await track_usage(
+                    user_id=user_id,
+                    endpoint="/api/chat/stream",
+                    model=model,
+                    tokens_input=tokens_input_est,
+                    tokens_output=tokens_output_est,
+                    cost=cost_est,
+                )
+            except Exception:
+                pass
+
+            # Best-effort memory extraction
+            try:
+                await memory_manager.auto_extract_memories(
+                    user_id=user_id,
+                    message=last_message,
+                    response=full_content,
+                )
+            except Exception:
+                pass
+
+            # Send final metadata chunk so frontend can update cost/token display
+            yield f"data: {json.dumps({'done': True, 'conversation_id': conversation_id, 'model': model, 'tokens_output': tokens_output_est, 'cost': cost_est})}\n\n"
+            yield f"data: [DONE]\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield f"data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 @router.get("/models")
 async def list_models(user: Dict = Depends(get_current_user)):
     """List available models for the user's tier."""

@@ -10,11 +10,11 @@ services:
       - key: APP_ENV
         value: production
       - key: DEBUG
-        value: false
+        value: "false"
       - key: APP_HOST
         value: 0.0.0.0
       - key: LOCAL_MODE
-        value: false
+        value: "false"
       - key: JWT_ALGORITHM
         value: HS256
       - key: JWT_EXPIRY_MINUTES
@@ -27,5 +27,7 @@ services:
         value: 60
       - key: ENTERPRISE_TIER_RPM
         value: 120
+      - key: CORS_ORIGINS
+        value: "https://ai-os-rho.vercel.app,https://www.ai-os-rho.vercel.app,https://ai-os.vercel.app"
       # ⚠️ Set these secrets manually in Render Dashboard → Environment:
       # JWT_SECRET, SUPABASE_URL, SUPABASE_ANON_KEY, GROQ_API_KEY, REDIS_URL
